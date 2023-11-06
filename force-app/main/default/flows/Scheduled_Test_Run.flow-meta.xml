@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>59.0</apiVersion>
+    <assignments>
+        <description>Add each ID of the ApexTestQueueItems to a string collection</description>
+        <name>Add_ApexTestQueueItem_ID_to_string_collection</name>
+        <label>Add ApexTestQueueItem ID to string collection</label>
+        <locationX>270</locationX>
+        <locationY>1476</locationY>
+        <assignmentItems>
+            <assignToReference>testQitemIDs</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Gather_ApexTestQueueItem_IDs.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Gather_ApexTestQueueItem_IDs</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Add the ApexTestQueueItem to collection to enqueue</description>
+        <name>Add_ApexTestQueueItem_to_Collection</name>
+        <label>Add ApexTestQueueItem to Collection</label>
+        <locationX>270</locationX>
+        <locationY>1068</locationY>
+        <assignmentItems>
+            <assignToReference>testQitems</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>testQitem</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_Through_Test_Classes</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Add a leading comma before the TestRunResult ID</description>
+        <name>Add_leading_comma</name>
+        <label>Add leading comma</label>
+        <locationX>270</locationX>
+        <locationY>2484</locationY>
+        <assignmentItems>
+            <assignToReference>strTestRunResultIDs</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <stringValue>,</stringValue>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Add_TestRunResult_ID_to_string</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Add each TestRunResult ID from ApexTestQueueItems to a collection</description>
+        <name>Add_TestRunResult_ID_to_collection</name>
+        <label>Add TestRunResult ID to collection</label>
+        <locationX>446</locationX>
+        <locationY>1992</locationY>
+        <assignmentItems>
+            <assignToReference>TestRunResultIDs</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_through_inserted_ApexTestQueueItems.TestRunResultId</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_through_inserted_ApexTestQueueItems</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Concatenate the TestRunResult ID to the string of comma-separated values</description>
+        <name>Add_TestRunResult_ID_to_string</name>
+        <label>Add TestRunResult ID to string</label>
+        <locationX>402</locationX>
+        <locationY>2676</locationY>
+        <assignmentItems>
+            <assignToReference>strTestRunResultIDs</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_TestRunResult_IDs</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_TestRunResult_IDs</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Add the ApexClass to Test Class collection</description>
+        <name>Add_to_Test_Classes</name>
+        <label>Add to Test Classes</label>
+        <locationX>270</locationX>
+        <locationY>576</locationY>
+        <assignmentItems>
+            <assignToReference>TestClassCollection</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_All_Classes</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_All_Classes</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>Populate ApexClassId for ApexTestQueueItem to enqueue</description>
+        <name>Populate_ApexTestQueueItem</name>
+        <label>Populate ApexTestQueueItem</label>
+        <locationX>270</locationX>
+        <locationY>960</locationY>
+        <assignmentItems>
+            <assignToReference>testQitem.ApexClassId</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Loop_Through_Test_Classes.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Add_ApexTestQueueItem_to_Collection</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>If DevOpsSetting was null, populate the TestRunResultIds AND Location for the custom setting record</description>
+        <name>Set_Location_and_TestRunResultIDs</name>
+        <label>Set Location and TestRunResultIDs</label>
+        <locationX>50</locationX>
+        <locationY>3084</locationY>
+        <assignmentItems>
+            <assignToReference>orgDevOpsSettings.SetupOwnerId</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>$Organization.Id</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>orgDevOpsSettings.TestRunResultIDs__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>strTestRunResultIDs</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Insert_DevOpsSetting</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>If DevOpsSetting record existed, set TestRunResultIDs</description>
+        <name>Set_TestRunResultIDs</name>
+        <label>Set TestRunResultIDs</label>
+        <locationX>314</locationX>
+        <locationY>3084</locationY>
+        <assignmentItems>
+            <assignToReference>orgDevOpsSettings.TestRunResultIDs__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>strTestRunResultIDs</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Update_DevOpsSetting</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <description>See if the Body of the ApexClass contains &apos;@isTest&apos;</description>
+        <name>Does_Body_Contain_isTest</name>
+        <label>Does Body Contain isTest</label>
+        <locationX>402</locationX>
+        <locationY>468</locationY>
+        <defaultConnector>
+            <targetReference>Loop_All_Classes</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Body Does Not Contain @isTest</defaultConnectorLabel>
+        <rules>
+            <name>Body_Contains_isTest</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Loop_All_Classes.Body</leftValueReference>
+                <operator>Contains</operator>
+                <rightValue>
+                    <stringValue>@isTest</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Add_to_Test_Classes</targetReference>
+            </connector>
+            <label>Body Contains @isTest</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <description>If the organization-level DevOpsSetting__c record does not exist yet</description>
+        <name>If_org_level_DevOpsSetting_null</name>
+        <label>If org-level DevOpsSetting null</label>
+        <locationX>182</locationX>
+        <locationY>2976</locationY>
+        <defaultConnector>
+            <targetReference>Set_TestRunResultIDs</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>DevOpsSetting not null</defaultConnectorLabel>
+        <rules>
+            <name>DevOpsSetting_is_null</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>orgDevOpsSettings</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Set_Location_and_TestRunResultIDs</targetReference>
+            </connector>
+            <label>DevOpsSetting is null</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <description>Check if the index for this loop is greater than one or not</description>
+        <name>Is_index_greater_than_one</name>
+        <label>Is index greater than one</label>
+        <locationX>402</locationX>
+        <locationY>2376</locationY>
+        <defaultConnector>
+            <targetReference>Add_TestRunResult_ID_to_string</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Index is one</defaultConnectorLabel>
+        <rules>
+            <name>Index_is_greater_than_one</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>idxTestRunResultIDs</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>1.0</numberValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Add_leading_comma</targetReference>
+            </connector>
+            <label>Index is greater than one</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <description>Check if this TestRunResult ID is already in the collection</description>
+        <name>Is_TestRunResult_ID_already_in_collection</name>
+        <label>Is TestRunResult ID already in collection</label>
+        <locationX>358</locationX>
+        <locationY>1884</locationY>
+        <defaultConnector>
+            <targetReference>Add_TestRunResult_ID_to_collection</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>TestRunResultId not in collection</defaultConnectorLabel>
+        <rules>
+            <name>TestRunResultId_is_in_collection</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>TestRunResultIDs</leftValueReference>
+                <operator>Contains</operator>
+                <rightValue>
+                    <elementReference>Loop_through_inserted_ApexTestQueueItems.TestRunResultId</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Loop_through_inserted_ApexTestQueueItems</targetReference>
+            </connector>
+            <label>TestRunResultId is in collection</label>
+        </rules>
+    </decisions>
+    <description>Scheduled Apex Test class run</description>
+    <environments>Default</environments>
+    <interviewLabel>Scheduled Test Run {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Scheduled Test Run</label>
+    <loops>
+        <description>Add the IDs of inserted ApexTestQueueItem records to a string collection for querying back the TestRunResultIds</description>
+        <name>Gather_ApexTestQueueItem_IDs</name>
+        <label>Gather ApexTestQueueItem IDs</label>
+        <locationX>182</locationX>
+        <locationY>1368</locationY>
+        <collectionReference>testQitems</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Add_ApexTestQueueItem_ID_to_string_collection</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_Enqueued_ApexTestQueueItems</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <description>Loop through all local classes to find test classes</description>
+        <name>Loop_All_Classes</name>
+        <label>Loop All Classes</label>
+        <locationX>182</locationX>
+        <locationY>360</locationY>
+        <collectionReference>Get_Local_Classes</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Does_Body_Contain_isTest</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Loop_Through_Test_Classes</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <description>Loop through the unique TestRunResult IDs</description>
+        <name>Loop_TestRunResult_IDs</name>
+        <label>Loop TestRunResult IDs</label>
+        <locationX>182</locationX>
+        <locationY>2268</locationY>
+        <collectionReference>TestRunResultIDs</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Is_index_greater_than_one</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Get_DevOpsSettings</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <description>Iterate over the retrieved, inserted ApexTestQueueItem records with all fields populated</description>
+        <name>Loop_through_inserted_ApexTestQueueItems</name>
+        <label>Loop through inserted ApexTestQueueItems</label>
+        <locationX>182</locationX>
+        <locationY>1776</locationY>
+        <collectionReference>Get_Enqueued_ApexTestQueueItems</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Is_TestRunResult_ID_already_in_collection</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Loop_TestRunResult_IDs</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <loops>
+        <description>Iterate through Apex Test Classes to create ApexTestQueueItem records</description>
+        <name>Loop_Through_Test_Classes</name>
+        <label>Loop Through Test Classes</label>
+        <locationX>182</locationX>
+        <locationY>852</locationY>
+        <collectionReference>TestClassCollection</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>Populate_ApexTestQueueItem</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Enqueue_Test_Classes</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Enqueue_Test_Classes</name>
+        <label>Enqueue Test Classes</label>
+        <locationX>182</locationX>
+        <locationY>1260</locationY>
+        <connector>
+            <targetReference>Gather_ApexTestQueueItem_IDs</targetReference>
+        </connector>
+        <inputReference>testQitems</inputReference>
+    </recordCreates>
+    <recordCreates>
+        <description>If the organization level custom setting DevOpsSettings__c record did not exist, insert it</description>
+        <name>Insert_DevOpsSetting</name>
+        <label>Insert DevOpsSetting</label>
+        <locationX>50</locationX>
+        <locationY>3192</locationY>
+        <inputReference>orgDevOpsSettings</inputReference>
+    </recordCreates>
+    <recordLookups>
+        <description>Get the organization level DevOps Settings custom setting record</description>
+        <name>Get_DevOpsSettings</name>
+        <label>Get DevOpsSettings</label>
+        <locationX>182</locationX>
+        <locationY>2868</locationY>
+        <assignNullValuesIfNoRecordsFound>true</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>If_org_level_DevOpsSetting_null</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>SetupOwnerId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Organization.Id</elementReference>
+            </value>
+        </filters>
+        <object>DevOpsSettings__c</object>
+        <outputReference>orgDevOpsSettings</outputReference>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>TestRunResultIDs__c</queriedFields>
+    </recordLookups>
+    <recordLookups>
+        <description>Retrieve the inserted ApexTestQueueItem records to get TestRunResultIds</description>
+        <name>Get_Enqueued_ApexTestQueueItems</name>
+        <label>Get Enqueued ApexTestQueueItems</label>
+        <locationX>182</locationX>
+        <locationY>1668</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_through_inserted_ApexTestQueueItems</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>testQitemIDs</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>ApexTestQueueItem</object>
+        <sortField>ApexClassId</sortField>
+        <sortOrder>Asc</sortOrder>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <description>Retrieve all local classes to filter for test classes</description>
+        <name>Get_Local_Classes</name>
+        <label>Get Local Classes</label>
+        <locationX>182</locationX>
+        <locationY>252</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_All_Classes</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>NamespacePrefix</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>ApexClass</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>Body</queriedFields>
+        <sortField>Name</sortField>
+        <sortOrder>Asc</sortOrder>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <description>If the organization level custom setting DevOpsSettings__c record existed, update it</description>
+        <name>Update_DevOpsSetting</name>
+        <label>Update DevOpsSetting</label>
+        <locationX>314</locationX>
+        <locationY>3192</locationY>
+        <inputReference>orgDevOpsSettings</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>56</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Local_Classes</targetReference>
+        </connector>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2023-09-02</startDate>
+            <startTime>18:00:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Active</status>
+    <variables>
+        <description>Counter index for inserted ApexTestQueueItem collection</description>
+        <name>idxTestQitems</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <scale>0</scale>
+        <value>
+            <numberValue>1.0</numberValue>
+        </value>
+    </variables>
+    <variables>
+        <description>Index for iterating through the TestRunResult ID collection</description>
+        <name>idxTestRunResultIDs</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <scale>0</scale>
+        <value>
+            <numberValue>1.0</numberValue>
+        </value>
+    </variables>
+    <variables>
+        <description>Organization-level DevOpsSettings__c custom setting record</description>
+        <name>orgDevOpsSettings</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>DevOpsSettings__c</objectType>
+    </variables>
+    <variables>
+        <description>String of comma-separated ApexTestRunResult IDs to write to custom setting</description>
+        <name>strTestRunResultIDs</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <value>
+            <stringValue></stringValue>
+        </value>
+    </variables>
+    <variables>
+        <description>Collection of ApexClass records that contain @isTest in the Body</description>
+        <name>TestClassCollection</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>ApexClass</objectType>
+    </variables>
+    <variables>
+        <description>Individual ApexTestQueueItem to add to collection for enqueue</description>
+        <name>testQitem</name>
+        <dataType>SObject</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>ApexTestQueueItem</objectType>
+    </variables>
+    <variables>
+        <description>String collection for ApexTestQueueItem IDs</description>
+        <name>testQitemIDs</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+    <variables>
+        <description>ApexTestQueueItem records to enqueue tests</description>
+        <name>testQitems</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>ApexTestQueueItem</objectType>
+    </variables>
+    <variables>
+        <description>Collection of test TestRunResultIDs</description>
+        <name>TestRunResultIDs</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+</Flow>

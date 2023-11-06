@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>59.0</apiVersion>
+    <assignments>
+        <name>Add_Failed_ApexTestResult</name>
+        <label>Add Failed ApexTestResult</label>
+        <locationX>264</locationX>
+        <locationY>984</locationY>
+        <assignmentItems>
+            <assignToReference>FailedApexTestResults</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Loop_ApexTestResults</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Loop_ApexTestResults</targetReference>
+        </connector>
+    </assignments>
+    <assignments>
+        <description>If there are no commas in DevOpsSettings__c.TestRunResultIds__c, add whole field value to collection</description>
+        <name>Add_single_TestRunResult_ID_to_collection</name>
+        <label>Add single TestRunResult ID to collection</label>
+        <locationX>264</locationX>
+        <locationY>468</locationY>
+        <assignmentItems>
+            <assignToReference>CollectionTestRunResultIDs</assignToReference>
+            <operator>Add</operator>
+            <value>
+                <elementReference>Get_DevOpsSettings.TestRunResultIDs__c</elementReference>
+            </value>
+        </assignmentItems>
+        <connector>
+            <targetReference>Get_ApexTestResult_Records</targetReference>
+        </connector>
+    </assignments>
+    <decisions>
+        <name>Any_Failed_Tests</name>
+        <label>Any Failed Tests?</label>
+        <locationX>176</locationX>
+        <locationY>1260</locationY>
+        <defaultConnectorLabel>No Failed Tests</defaultConnectorLabel>
+        <rules>
+            <name>Failed_Tests_Exist</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>HasFailedTests</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>true</booleanValue>
+                </rightValue>
+            </conditions>
+            <label>Failed Tests Exist</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <description>See if the DevOpsSettings__c.TestRunResultIds__c field contains commas or not to know if we need to parse through them</description>
+        <name>Does_TestRunResultIds_contain_commas</name>
+        <label>Does TestRunResultIds contain commas?</label>
+        <locationX>176</locationX>
+        <locationY>360</locationY>
+        <defaultConnector>
+            <targetReference>Add_single_TestRunResult_ID_to_collection</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>No commas in TestRunResultIds</defaultConnectorLabel>
+        <rules>
+            <name>TestRunResultIds_contains_commas</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_DevOpsSettings.TestRunResultIDs__c</leftValueReference>
+                <operator>Contains</operator>
+                <rightValue>
+                    <stringValue>,</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_ApexTestResult_Records</targetReference>
+            </connector>
+            <label>TestRunResultIds contains commas</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>If_Test_Failure</name>
+        <label>If Test Failure</label>
+        <locationX>396</locationX>
+        <locationY>876</locationY>
+        <defaultConnector>
+            <targetReference>Loop_ApexTestResults</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Failed_ApexTestResult</name>
+            <conditionLogic>or</conditionLogic>
+            <conditions>
+                <leftValueReference>Loop_ApexTestResults.Outcome</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Fail</stringValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>Loop_ApexTestResults.Outcome</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>CompileFail</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Add_Failed_ApexTestResult</targetReference>
+            </connector>
+            <label>Failed ApexTestResult</label>
+        </rules>
+    </decisions>
+    <description>Process results of a scheduled test run</description>
+    <environments>Default</environments>
+    <interviewLabel>Scheduled Test Processor {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Scheduled Test Processor</label>
+    <loops>
+        <name>Loop_ApexTestResults</name>
+        <label>Loop ApexTestResults</label>
+        <locationX>176</locationX>
+        <locationY>768</locationY>
+        <collectionReference>Get_ApexTestResult_Records</collectionReference>
+        <iterationOrder>Asc</iterationOrder>
+        <nextValueConnector>
+            <targetReference>If_Test_Failure</targetReference>
+        </nextValueConnector>
+        <noMoreValuesConnector>
+            <targetReference>Any_Failed_Tests</targetReference>
+        </noMoreValuesConnector>
+    </loops>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <description>Retrieve the ApexTestResult records for the given ApexTestRunResult IDs</description>
+        <name>Get_ApexTestResult_Records</name>
+        <label>Get ApexTestResult Records</label>
+        <locationX>176</locationX>
+        <locationY>660</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Loop_ApexTestResults</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>ApexTestRunResultId</field>
+            <operator>In</operator>
+            <value>
+                <elementReference>CollectionTestRunResultIDs</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>ApexTestResult</object>
+        <sortField>ApexTestRunResultId</sortField>
+        <sortOrder>Asc</sortOrder>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordLookups>
+        <description>Retrieve the organization-level DevOpsSettings__c custom setting record</description>
+        <name>Get_DevOpsSettings</name>
+        <label>Get DevOpsSettings</label>
+        <locationX>176</locationX>
+        <locationY>252</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Does_TestRunResultIds_contain_commas</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>SetupOwnerId</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Organization.Id</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>DevOpsSettings__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_DevOpsSettings</targetReference>
+        </connector>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2023-09-02</startDate>
+            <startTime>18:30:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+    <status>Draft</status>
+    <variables>
+        <description>Collection of TestRunResult IDs as strings</description>
+        <name>CollectionTestRunResultIDs</name>
+        <dataType>String</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+    <variables>
+        <description>Indexes of commas in DevOpsSettings__c.TestRunResultIds__c</description>
+        <name>Comma_Occurrences</name>
+        <dataType>Number</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <scale>2</scale>
+    </variables>
+    <variables>
+        <name>FailedApexTestResults</name>
+        <dataType>SObject</dataType>
+        <isCollection>true</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <objectType>ApexTestResult</objectType>
+    </variables>
+    <variables>
+        <name>HasFailedTests</name>
+        <dataType>Boolean</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>true</isOutput>
+        <value>
+            <booleanValue>false</booleanValue>
+        </value>
+    </variables>
+</Flow>
