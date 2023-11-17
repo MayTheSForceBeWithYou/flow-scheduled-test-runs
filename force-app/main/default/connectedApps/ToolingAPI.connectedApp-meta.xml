@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ConnectedApp xmlns="http://soap.sforce.com/2006/04/metadata">
-    <contactEmail>MayTheSForceBeWithYou@gmail.com</contactEmail>
-    <contactPhone>9252863499</contactPhone>
+    <contactEmail>your-email@gmail.com</contactEmail>
+    <contactPhone>8185551212</contactPhone>
     <label>ToolingAPI</label>
     <oauthConfig>
-        <callbackUrl>https://boon-health.my.salesforce.com/services/authcallback/ToolingAPI</callbackUrl>
+        <callbackUrl>https://my-domain.my.salesforce.com/services/authcallback/ToolingAPI</callbackUrl>
         <isAdminApproved>false</isAdminApproved>
         <isClientCredentialEnabled>false</isClientCredentialEnabled>
         <isCodeCredentialEnabled>false</isCodeCredentialEnabled>
